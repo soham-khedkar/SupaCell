@@ -3,41 +3,34 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import Link from 'next/link'
+import { Input} from '../components/ui/input'
 import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { BackgroundBeams } from '../components/ui/background-beams'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-export default function SignUp() {
+export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const router = useRouter()
   const supabase = createClientComponentClient()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data: { user }, error } = await supabase.auth.signUp({ email, password })
     if (error) {
-      console.error('Error signing up:', error.message)
+      setError('An account already exists with this email. Try signing in instead.')
     } else {
-      router.push('/game')
+      router.push('/')
     }
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-black text-white">
-      <BackgroundBeams />
-      <main className="flex-grow container mx-auto px-4 py-16 flex items-center justify-center relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md"
-        >
-          <h1 className="text-3xl font-bold mb-6 text-center">
-            Sign Up for Supacell
-          </h1>
-          <form onSubmit={handleSignUp} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <main className="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-lg shadow-lg">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          <h1 className="text-2xl font-bold text-white text-center">Sign Up</h1>
+          <form onSubmit={handleSignUp} className="space-y-6">
             <Input
               type="email"
               placeholder="Email"
@@ -54,9 +47,16 @@ export default function SignUp() {
               required
               className="w-full px-3 py-2 bg-gray-700 text-white rounded"
             />
-            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            {error && <p className="text-red-500">{error}</p>}
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Sign Up
             </Button>
+            <p className="mt-4 text-center text-white">
+              Already have an account?{' '}
+              <Link href="/signin" className="text-blue-400 hover:underline">
+                Sign In
+              </Link>
+            </p>
           </form>
         </motion.div>
       </main>

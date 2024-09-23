@@ -6,16 +6,17 @@ import { BackgroundBeams } from '../app/components/ui/background-beams'
 import { SparklesCore } from '../app/components/ui/sparkles'
 import Link from 'next/link'
 import Image from 'next/image'
-import Header from './components/Header'
 import Footer from './components/Footer'
 import { useSession } from '@supabase/auth-helpers-react'
+import Header from './components/Header'
 
 export default function Home() {
   const session = useSession()
   const user = session?.user
   return (
+    
     <div className="flex flex-col min-h-screen bg-black text-white overflow-hidden">
-      <Header />
+      <Header/>
       <BackgroundBeams />
       <main className="flex-grow container mx-auto px-4 py-16 relative z-10">
         <motion.div
@@ -68,9 +69,16 @@ export default function Home() {
             </Button>
             </>
             ) : (
+              <>
+              <div className='space-between flex flex-row'>
               <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                <Link href="/game">Sign out</Link>
+                <Link href="/">Sign out</Link>
               </Button>
+              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded">
+              <Link href="/game">Game</Link>
+            </Button>
+            </div>
+            </>
             )}
           </div>
         </motion.div>

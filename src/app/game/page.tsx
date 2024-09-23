@@ -8,10 +8,10 @@ import { Button } from '../components/ui/button'
 import { BackgroundBeams } from '../components/ui/background-beams'
 import { TextGenerateEffect } from '../components/ui/text-generate-effect'
 import { CardBody, CardContainer, CardItem } from '../components/ui/3d-card'
-import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Image from 'next/image'
 import Link from 'next/link'
+import Header from '../components/Header'
 
 export default function Game() {
   const [user, setUser] = useState<any>(null)
@@ -34,11 +34,11 @@ export default function Game() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+      <Header/>
       <BackgroundBeams />
-      <Header />
       <main className="flex-grow container mx-auto px-4 py-8 relative z-10">
         <h1 className="text-4xl font-bold mb-8 text-center">
-          <TextGenerateEffect words="Welcome to Supacell" />
+          <h2 className='text-2xl font-bold mb-4 glow'>SupaCell welcomes you guardian!!</h2>
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <GameOption

@@ -6,19 +6,18 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Button } from "../components/ui/button";
 import { BackgroundBeams } from "../components/ui/background-beams";
 import { TextGenerateEffect } from "../components/ui/text-generate-effect";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Image from "next/image";
-import { image } from "framer-motion/client";
+import Header from "../components/Header";
 
-const troops = [
+const initialTroops = [
   {
     id: 1,
     name: "Barbarian",
     ability: "Melee fighter",
     trainTime: 20,
     maxCount: 5,
-    imageUrl: "/barbarian.png",
+    imageUrl: "/images/barbarian.png",
   },
   {
     id: 2,
@@ -26,16 +25,23 @@ const troops = [
     ability: "Ranged attacker",
     trainTime: 25,
     maxCount: 4,
-    imageUrl: "/archer.png",
+    imageUrl: "/images/archer.png",
   },
-  { id: 3, name: "Giant", ability: "Tank", trainTime: 120, maxCount: 2, imageUrl: "/giant.png" },
+  {
+    id: 3,
+    name: "Giant",
+    ability: "Tank",
+    trainTime: 120,
+    maxCount: 2,
+    imageUrl: "/images/giant.png",
+  },
   {
     id: 4,
     name: "Wizard",
     ability: "Area damage",
     trainTime: 180,
     maxCount: 2,
-
+    imageUrl: "/images/wizard.png",
   },
 ];
 
@@ -44,7 +50,7 @@ export default function TrainTroops() {
   const [trainingQueue, setTrainingQueue] = useState<any[]>([]);
   const [completedTraining, setCompletedTraining] = useState<any[]>([]);
   const supabase = createClientComponentClient();
-  const [troops, setTroops] = useState<any[]>([]);
+  const [troops, setTroops] = useState<any[]>(initialTroops);
 
   useEffect(() => {
     const getUser = async () => {
@@ -68,52 +74,19 @@ export default function TrainTroops() {
       }
     };
     getUser();
-  }, []);
-  useEffect(() => {
-    const loadTroops = async () => {
-      const fetchedTroops = await fetchTroops();
-      setTroops(fetchedTroops);
-    };
-  
-    loadTroops();
-  }, []);
-  const fetchTroops = async () => {
-    const { data: troopsData, error } = await supabase
-      .from('troops')
-      .select('*')
-      .order('id');
-  
-    if (error) {
-      console.error('Error fetching troops:', error);
-      return [];
-    }
-  
-    return troopsData;
-  };
+  }, [supabase]);
+
   interface Troop {
     id: number;
     name: string;
     ability: string;
     trainTime: number;
     maxCount: number;
-    image_url: string;
+    imageUrl: string;
   }
-
-  interface QueueItem {
-    id?: number;
-    user_id: string;
-    troop_id: number;
-    start_time: string;
-    end_time: string;
-  }
-
-  interface User {
-    id: string;
-    [key: string]: any;
-  }
-
+  
   const addToQueue = async (troop: Troop) => {
-    const newQueueItem: QueueItem = {
+    const newQueueItem = {
       user_id: user.id,
       troop_id: troop.id,
       start_time: new Date().toISOString(),
@@ -125,6 +98,9 @@ export default function TrainTroops() {
       .select();
     if (data) {
       setTrainingQueue([...trainingQueue, data[0]]);
+    }
+    if (error) {
+      console.error("Error adding to queue:", error);
     }
   };
 
@@ -154,17 +130,17 @@ export default function TrainTroops() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [trainingQueue, completedTraining]);
+  }, [trainingQueue, completedTraining, supabase]);
 
   if (!user) return null;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+      <Header/>
       <BackgroundBeams />
-      <Header />
       <main className="flex-grow container mx-auto px-4 py-8 relative z-10">
         <h1 className="text-4xl font-bold mb-8 text-center">
-          <TextGenerateEffect words="Train Your Troops" />
+        <h2 className="text-2xl font-bold mb-4 glow">Train Your Troops</h2>
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {troops.map((troop) => (
@@ -172,14 +148,16 @@ export default function TrainTroops() {
               key={troop.id}
               className="bg-gray-800 p-4 rounded-lg shadow-lg"
             >
+              <div className="flex justify-center">
               <Image
-                src={troop.imageUrl || "/placeholder.png"} 
+                src={troop.imageUrl || "/images/placeholder.png"}
                 alt={troop.name}
                 width={200}
                 height={200}
                 className="rounded-lg mb-4"
               />
-              <h2 className="text-2xl font-bold">{troop.name}</h2>
+              </div>
+              <h2 className="text-2xl font-bold text-center">{troop.name}</h2>
               <p className="text-center">{troop.ability}</p>
               <p className="text-center">Train Time: {troop.trainTime}s</p>
               <p className="text-center">Max Count: {troop.maxCount}</p>
@@ -189,7 +167,7 @@ export default function TrainTroops() {
                   trainingQueue.filter((item) => item.troop_id === troop.id)
                     .length >= troop.maxCount
                 }
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full pt-2 bg-blue-600 hover:bg-blue-700"
               >
                 Train
               </Button>
@@ -217,10 +195,10 @@ export default function TrainTroops() {
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
                   <Image
-                    src="/placeholder.svg"
+                    src="/images/placeholder.png"
                     alt="Training"
-                    width={32}
-                    height={32}
+                    layout="fill"
+                    objectFit="contain"
                   />
                 </motion.div>
               </div>
