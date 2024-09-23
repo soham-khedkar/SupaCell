@@ -1,34 +1,35 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Box, Text } from '@react-three/drei'
+import { useState, useRef, Suspense } from 'react'
+import { Vector3, Euler } from 'three'
+import { Canvas, useThree } from '@react-three/fiber'
+import { OrbitControls, useGLTF, Html, Environment, Sky } from '@react-three/drei'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { Button } from '../components/ui/button'
 
 interface BuildingProps {
-  position: [number, number, number];
-  size: [number, number, number];
-  color: string;
+  position: Vector3
+  rotation: Euler
+  scale: Vector3
+  type: string
 }
 
-const Building = ({ position, size, color }: BuildingProps) => {
-  return (
-    <Box position={position} args={size}>
-      <meshStandardMaterial color={color} />
-    </Box>
-  )
+const Building = ({ position, rotation, scale, type }: BuildingProps) => {
+  const { scene } = useGLTF(`/models/${type}.glb`)
+  return <primitive object={scene} position={position} rotation={rotation} scale={scale} />
 }
 
 const Base = () => {
   const [buildings, setBuildings] = useState<BuildingProps[]>([])
+  const { camera } = useThree()
 
-  const addBuilding = () => {
+  const addBuilding = (type: string) => {
     const newBuilding: BuildingProps = {
-      position: [Math.random() * 10 - 5, 0, Math.random() * 10 - 5],
-      size: [1, Math.random() * 2 + 1, 1],
-      color: `hsl(${Math.random() * 360}, 50%, 50%)`
+      type,
+      position: new Vector3(Math.random() * 20 - 10, 0, Math.random() * 20 - 10),
+      rotation: new Euler(0, Math.random() * Math.PI * 2, 0),
+      scale: new Vector3(0.5, 0.5, 0.5),
     }
     setBuildings([...buildings, newBuilding])
   }
@@ -36,25 +37,23 @@ const Base = () => {
   return (
     <>
       <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      <gridHelper args={[20, 20]} />
+      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+      <Sky sunPosition={[100, 20, 100]} />
+      <Environment preset="sunset" />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
+        <planeGeometry args={[100, 100]} />
+        <meshStandardMaterial color="#4a7023" />
+      </mesh>
       {buildings.map((building, index) => (
         <Building key={index} {...building} />
       ))}
-      <Text
-        position={[0, 5, 0]}
-        color="white"
-        fontSize={0.5}
-        maxWidth={200}
-        lineHeight={1}
-        letterSpacing={0.02}
-        textAlign="center"
-        font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Click the "Add Building" button to build your base!
-      </Text>
+      <Html position={[0, 5, 0]}>
+        <div className="bg-black bg-opacity-50 p-2 rounded">
+          <Button onClick={() => addBuilding('townhall')} className="mr-2">Add Town Hall</Button>
+          <Button onClick={() => addBuilding('barracks')} className="mr-2">Add Barracks</Button>
+          <Button onClick={() => addBuilding('goldmine')}>Add Gold Mine</Button>
+        </div>
+      </Html>
     </>
   )
 }
@@ -66,15 +65,12 @@ export default function BuildBase() {
       <main className="flex-grow container mx-auto px-4 py-8 relative">
         <h1 className="text-4xl font-bold mb-8 text-center">Build Your Base</h1>
         <div className="h-[60vh] w-full">
-          <Canvas camera={{ position: [0, 5, 10] }}>
-            <Base />
+          <Canvas camera={{ position: [0, 10, 20] }} shadows>
+            <Suspense fallback={null}>
+              <Base />
+            </Suspense>
             <OrbitControls />
           </Canvas>
-        </div>
-        <div className="mt-4 flex justify-center">
-          <Button onClick={() => document.dispatchEvent(new CustomEvent('addBuilding'))}>
-            Add Building
-          </Button>
         </div>
       </main>
       <Footer />
